@@ -11,10 +11,14 @@ import {BaseAccount} from "account-abstraction/core/BaseAccount.sol"; //extend W
 import {UserOperation} from "account-abstraction/interfaces/UserOperation.sol"; //Struct for representing a UserOperation
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol"; //This is used to validate signatures through the ECDSA library
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {TokenCallbackHandler} from "account-abstraction/samples/callback/TokenCallbackHandler.sol";
 
 contract Wallet is 
     BaseAccount,
-    Initializable
+    Initializable,
+    UUPSUpgradeable,
+    TokenCallbackHandler
 {
     using ECDSA for bytes32;
 
@@ -109,9 +113,32 @@ contract Wallet is
         }
     }
 
+    function encodeSignatures(
+
+        bytes[] memory signatures
+    ) public pure returns {
+        
+        return abi.encode(signatures);
+    }
+
     //Returns the EntryPoint saved earlier
     function entryPoint() public view override returns (IEntryPoint) {
         return _entryPoint;
     }
 
+    function getDeposit() public view returns (uint256) {
+        return(entryPoint).balanceOf(address(this));
+    }
+
+    function addDeposit() public payable {
+        entryPoint().depositTo{value: msg.value}(address(this));
+    }
+
+    function _authorizeUpgrade(
+        address
+    ) internal view override _requireFromEntryPointOrFactory {
+
+    }
+
+    receive() external payable {}
 }
