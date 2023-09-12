@@ -31,7 +31,7 @@ contract Wallet is
 
     modifier _requireFromEntryPointOrFactory() {
         require(
-            mmsg.sender == address(_entryPoint) || msg.sender == walletFactory,
+            msg.sender == address(_entryPoint) || msg.sender == walletFactory,
             "Only entry point or wallet factory can call."
         );
         _;
@@ -71,8 +71,7 @@ contract Wallet is
     }
 
     function _validateSignature(
-        UserOperation callData userOp,  // UserOperation data structure passed as input
-
+        UserOperation calldata userOp,  // UserOperation data structure passed as input
         bytes32 userOpHash  // Hash of the UserOperation without the signatures
     ) internal view override returns (uint256) {
         // Convert the userOpHash to an Ethereum Signed Message Hash
@@ -103,21 +102,19 @@ contract Wallet is
     //Call the built in call function within the evm.
     //This function is called with the addess, ether amount, and data
     function _call(address target, uint256 value, bytes memory data) internal {
-        (bool success, bytes memory results) = target.cal{value }(data);
+        (bool success, bytes memory result) = target.call{value: value}(data);
         if (!success) {
             assembly {
                 //Assembly code here skips the first 32 bytes of result, which contains the data length.
                 //It then loads the actual error message using mload and calls revert with this error message
-                revert(add(result, 32), mload(results))
+                revert(add(result, 32), mload(result))
             }
         }
     }
 
     function encodeSignatures(
-
         bytes[] memory signatures
-    ) public pure returns {
-        
+    ) public pure returns (bytes memory){
         return abi.encode(signatures);
     }
 
@@ -127,7 +124,7 @@ contract Wallet is
     }
 
     function getDeposit() public view returns (uint256) {
-        return(entryPoint).balanceOf(address(this));
+        return entryPoint().balanceOf(address(this));
     }
 
     function addDeposit() public payable {

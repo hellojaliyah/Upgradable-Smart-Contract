@@ -3,4 +3,10 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
+[rpc_endpoints]
+goerli = "${https://eth-goerli.g.alchemy.com/v2/pAL09kpLHz6Ieq_QgBbxdD4Z_QdRZjIH}"
+
+[etherscan]
+goerli = { key = "${6ETGG8JU52B6TRIJTUPJN75HXV2G75NIM8}" }
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
